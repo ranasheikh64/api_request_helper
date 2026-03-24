@@ -93,7 +93,7 @@ class ApiClient {
   ) async {
     try {
       Response response;
-      final requestTask = () async {
+      Future<Response> requestTask() async {
         return await _dio.request(
           path,
           data: opts.data,
@@ -104,7 +104,7 @@ class ApiClient {
             contentType: opts.contentType,
           ),
         );
-      };
+      }
 
       if (opts.isIsolate) {
         _loggingService.logInfo("Running request for $path in Isolate");

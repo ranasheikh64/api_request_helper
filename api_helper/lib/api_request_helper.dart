@@ -1,4 +1,4 @@
-library api_helper;
+library;
 
 export 'src/api_client.dart';
 export 'src/models/api_request_options.dart';
