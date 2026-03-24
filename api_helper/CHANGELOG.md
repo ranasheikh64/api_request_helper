@@ -1,4 +1,4 @@
-## 1.0.2
+## 1.0.3
 
 - Initial release.
 - Support for GET, POST, PUT, DELETE, and MULTIPART.
