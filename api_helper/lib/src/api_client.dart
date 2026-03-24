@@ -19,6 +19,7 @@ class ApiClient {
     Future<String?> Function()? getToken,
     Future<void> Function()? onRefreshToken,
     List<Interceptor>? additionalInterceptors,
+    bool isBearer = true,
   }) {
     _dio = Dio(
       BaseOptions(
@@ -30,7 +31,12 @@ class ApiClient {
 
     _dio.interceptors.add(LoggerInterceptor(_loggingService));
     _dio.interceptors.add(
-      AuthInterceptor(_dio, getToken: getToken, onRefreshToken: onRefreshToken),
+      AuthInterceptor(
+        _dio,
+        getToken: getToken,
+        onRefreshToken: onRefreshToken,
+        isBearer: isBearer,
+      ),
     );
     if (additionalInterceptors != null) {
       _dio.interceptors.addAll(additionalInterceptors);
@@ -209,4 +215,15 @@ class ApiClient {
     opts.data = formData;
     return request(path, method: 'POST', options: opts, fromJson: fromJson);
   }
+
+  CacheService get cacheService => _cacheService;
+
+  // Token Management Helpers
+  Future<void> setAccessToken(String token) => _cacheService.setAccessToken(token);
+  String? getAccessToken() => _cacheService.getAccessToken();
+
+  Future<void> setRefreshToken(String token) => _cacheService.setRefreshToken(token);
+  String? getRefreshToken() => _cacheService.getRefreshToken();
+
+  Future<void> logout() => _cacheService.deleteToken();
 }

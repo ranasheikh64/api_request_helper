@@ -25,6 +25,22 @@ final apiClient = ApiClient(
 await apiClient.init(); // Initialize Hive
 ```
 
+## Token Management
+
+You can easily save and retrieve authentication tokens using the built-in helper methods.
+
+```dart
+// Save tokens (usually after login)
+await apiClient.setAccessToken("your_access_token");
+await apiClient.setRefreshToken("your_refresh_token");
+
+// Get tokens (often used in the ApiClient constructor)
+final token = apiClient.getAccessToken();
+
+// Clear tokens (on logout)
+await apiClient.logout();
+```
+
 ## Request Examples
 
 ### GET Request (with Cache then Network)
