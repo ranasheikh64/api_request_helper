@@ -62,7 +62,12 @@ class ApiClient {
         _cacheService.hasData(cacheKey)) {
       final cachedData = _cacheService.getData(cacheKey);
       if (cachedData != null) {
-        _loggingService.logInfo("Returning cached data for $path");
+        _loggingService.logResponse(
+          url: "$baseUrl$path",
+          statusCode: 200,
+          body: cachedData,
+          isFromCache: true,
+        );
         _fetchAndCacheInBackground(
           path,
           method,
@@ -125,7 +130,11 @@ class ApiClient {
         message: response.statusMessage,
       );
     } catch (e) {
-      _loggingService.logError("Request failed for $path: $e");
+      _loggingService.logError(
+        url: "$baseUrl$path",
+        statusCode: null,
+        error: e.toString(),
+      );
       return ApiResponse(message: e.toString());
     }
   }

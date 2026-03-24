@@ -8,29 +8,32 @@ class LoggerInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    _loggingService.logInfo(
-      'REQUEST[${options.method}] => PATH: ${options.path}',
+    _loggingService.logRequest(
+      url: "${options.baseUrl}${options.path}",
+      method: options.method,
+      headers: options.headers,
+      body: options.data,
     );
-    _loggingService.logDebug('Headers: ${options.headers}');
-    _loggingService.logDebug('Data: ${options.data}');
     return super.onRequest(options, handler);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    _loggingService.logInfo(
-      'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}',
+    _loggingService.logResponse(
+      url: "${response.requestOptions.baseUrl}${response.requestOptions.path}",
+      statusCode: response.statusCode,
+      body: response.data,
     );
-    _loggingService.logDebug('Data: ${response.data}');
     return super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     _loggingService.logError(
-      'ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}',
-      err.error,
-      err.stackTrace,
+      url: "${err.requestOptions.baseUrl}${err.requestOptions.path}",
+      statusCode: err.response?.statusCode,
+      error: err.message ?? err.error,
+      stackTrace: err.stackTrace,
     );
     return super.onError(err, handler);
   }
