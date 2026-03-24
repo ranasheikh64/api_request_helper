@@ -1,5 +1,6 @@
-import 'package:api_request_helper/api_helper_rana.dart';
+import 'package:api_helper_rana/api_helper_rana.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,75 +18,96 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'API Helper Example',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: PostsPage(apiClient: apiClient),
+      title: 'API Helper Rana Example',
+      theme: ThemeData(
+        primarySwatch: Colors.deepPurple,
+        useMaterial3: true,
+      ),
+      home: HomePage(apiClient: apiClient),
     );
   }
 }
 
-class PostsPage extends StatefulWidget {
+class HomePage extends StatefulWidget {
   final ApiClient apiClient;
-  const PostsPage({super.key, required this.apiClient});
+  const HomePage({super.key, required this.apiClient});
 
   @override
-  State<PostsPage> createState() => _PostsPageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _PostsPageState extends State<PostsPage> {
-  List<dynamic>? posts;
-  bool isLoading = true;
+class _HomePageState extends State<HomePage> {
+  String responseText = "Press a button to make a request";
+  bool isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchPosts();
-  }
-
-  Future<void> _fetchPosts() async {
-    final response = await widget.apiClient.get<List<dynamic>>(
-      "/posts",
-      options: ApiRequestOptions(saveInLocal: true, isIsolate: true),
-      onUpdate: (updatedResponse) {
-        if (updatedResponse.data != null && mounted) {
-          setState(() {
-            posts = updatedResponse.data;
-            isLoading = false;
-          });
-          widget.apiClient.manualLog(
-            "Posts updated from network in background",
-          );
-        }
-      },
-    );
-
-    if (response.data != null && mounted) {
-      setState(() {
-        posts = response.data;
-        isLoading = false;
-      });
-      if (response.isFromCache) {
-        widget.apiClient.manualLog("Showing posts from local storage");
-      }
-    }
+  Future<void> _handleRequest(Future<ApiResponse> request) async {
+    setState(() => isLoading = true);
+    final response = await request;
+    setState(() {
+      isLoading = false;
+      responseText = "Status: ${response.statusCode}\n"
+          "From Cache: ${response.isFromCache}\n"
+          "Data: ${response.data}";
+    });
+    widget.apiClient.manualLog("Request completed with status: ${response.statusCode}");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Posts (Cache then Network)")),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: posts?.length ?? 0,
-              itemBuilder: (context, index) {
-                final post = posts![index];
-                return ListTile(
-                  title: Text(post['title']),
-                  subtitle: Text(post['body']),
-                );
-              },
+      appBar: AppBar(title: const Text("API Helper Rana")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              onPressed: () => _handleRequest(widget.apiClient.get(
+                "/posts/1",
+                options: ApiRequestOptions(saveInLocal: true),
+                onUpdate: (update) => setState(() => responseText = "Updated: ${update.data}"),
+              )),
+              child: const Text("GET (with Cache)"),
             ),
+            ElevatedButton(
+              onPressed: () => _handleRequest(widget.apiClient.post(
+                "/posts",
+                data: {'title': 'foo', 'body': 'bar', 'userId': 1},
+              )),
+              child: const Text("POST"),
+            ),
+            ElevatedButton(
+              onPressed: () => _handleRequest(widget.apiClient.put(
+                "/posts/1",
+                data: {'id': 1, 'title': 'foo', 'body': 'bar', 'userId': 1},
+              )),
+              child: const Text("PUT"),
+            ),
+            ElevatedButton(
+              onPressed: () => _handleRequest(widget.apiClient.delete("/posts/1")),
+              child: const Text("DELETE"),
+            ),
+            ElevatedButton(
+              onPressed: () => _handleRequest(widget.apiClient.multipart(
+                "https://httpbin.org/post", // Using httpbin for multipart test
+                {
+                  'file': MultipartFile.fromString('dummy content', filename: 'test.txt'),
+                  'name': 'rana',
+                },
+              )),
+              child: const Text("MULTIPART (Upload)"),
+            ),
+            const Divider(height: 32),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else
+              Text(
+                responseText,
+                style: const TextStyle(fontFamily: 'monospace'),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

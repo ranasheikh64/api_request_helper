@@ -1,6 +1,6 @@
-# api_helper
+# api_helper_rana
 
-A powerful Flutter package for robust API integration with built-in caching, isolate support, and auto-token refresh.
+A robust Flutter package for API integration with Hive caching, background isolates, and auto-token refresh.
 
 ## Features
 
@@ -25,38 +25,57 @@ final apiClient = ApiClient(
 await apiClient.init(); // Initialize Hive
 ```
 
-### 2. Basic Requests
-Use the helper methods for quick requests.
+## Request Examples
 
-```dart
-final response = await apiClient.get<Map<String, dynamic>>("/users");
-```
-
-### 3. Cache-then-Network Strategy
-Enable `saveInLocal` and provide an `onUpdate` callback.
+### GET Request (with Cache then Network)
+Returns cached data immediately, then fetches and updates in the background.
 
 ```dart
 final response = await apiClient.get<List<dynamic>>(
   "/posts",
-  options: ApiRequestOptions(saveInLocal: true),
+  options: ApiRequestOptions(saveInLocal: true, isIsolate: true),
   onUpdate: (updatedResponse) {
-    // Update UI with fresh data
+    // Handle background update
   },
 );
 ```
 
-### 4. Background Isolates
-Use the `isIsolate` flag to run the request in a separate isolate.
-
+### POST Request
 ```dart
-final response = await apiClient.get(
-  "/large-data",
-  options: ApiRequestOptions(isIsolate: true),
+final response = await apiClient.post<Map<String, dynamic>>(
+  "/posts",
+  data: {'title': 'foo', 'body': 'bar', 'userId': 1},
 );
 ```
 
-## Implementation Details
+### PUT Request
+```dart
+final response = await apiClient.put<Map<String, dynamic>>(
+  "/posts/1",
+  data: {'id': 1, 'title': 'foo', 'body': 'bar', 'userId': 1},
+);
+```
 
-- **Cache Service**: Uses [Hive](https://pub.dev/packages/hive) for fast, local key-value storage.
-- **Network Client**: Built on [Dio](https://pub.dev/packages/dio) with custom interceptors.
-- **Isolates**: Uses Flutter's `compute` for easy multi-threading.
+### DELETE Request
+```dart
+final response = await apiClient.delete("/posts/1");
+```
+
+### MULTIPART Request (File Upload)
+```dart
+final response = await apiClient.multipart(
+  "/upload",
+  {
+    'file': await MultipartFile.fromFile('path/to/file.jpg'),
+    'name': 'api_helper_rana',
+  },
+);
+```
+
+## Manual Logging
+```dart
+apiClient.manualLog("User clicked refresh button");
+```
+
+## Credits
+Built with [Dio](https://pub.dev/packages/dio), [Hive](https://pub.dev/packages/hive), and [Logger](https://pub.dev/packages/logger).
