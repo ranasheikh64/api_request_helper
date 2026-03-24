@@ -1,7 +1,7 @@
 name: api_helper
 description: "A robust Flutter package for API integration with Hive caching, background isolates, and auto-token refresh."
-version: 1.0.0
-homepage: https://github.com/your-username/api_helper
+version: 1.0.1
+homepage: https://github.com/ranasheikh64/api_request_helper
 
 environment:
   sdk: ^3.11.1
