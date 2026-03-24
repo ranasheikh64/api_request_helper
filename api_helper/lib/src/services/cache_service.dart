@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -7,8 +8,12 @@ class CacheService {
   late Box _box;
 
   Future<void> init() async {
-    final directory = await getApplicationDocumentsDirectory();
-    await Hive.initFlutter(directory.path);
+    if (kIsWeb) {
+      await Hive.initFlutter();
+    } else {
+      final directory = await getApplicationDocumentsDirectory();
+      await Hive.initFlutter(directory.path);
+    }
     _box = await Hive.openBox(_boxName);
   }
 

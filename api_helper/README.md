@@ -72,6 +72,40 @@ final response = await apiClient.multipart(
 );
 ```
 
+## Local Storage & Caching
+
+The package provides built-in support for persistent local storage using Hive.
+
+### 1. Automatic Caching
+Simply set `saveInLocal: true` in the `ApiRequestOptions`. 
+
+- **GET Requests**: Implements the "Cache-First" pattern. It returns cached data immediately while fetching fresh data in the background (triggered via `onUpdate`).
+- **POST/PUT Requests**: Automatically persists the success response to local storage for future reference.
+
+```dart
+final response = await apiClient.get<List<dynamic>>(
+  "/posts",
+  options: ApiRequestOptions(saveInLocal: true),
+  onUpdate: (updatedResponse) {
+    // Handle background update
+  },
+);
+```
+
+### 2. Manual Cache Interaction
+You can also manually interact with the `CacheService` if needed:
+
+```dart
+// Save data manually
+await apiClient.cacheService.saveData("custom_key", {"data": "value"});
+
+// Get data manually
+final data = apiClient.cacheService.getData("custom_key");
+
+// Clear all cache
+await apiClient.cacheService.clearCache();
+```
+
 ## Manual Logging
 ```dart
 apiClient.manualLog("User clicked refresh button");
